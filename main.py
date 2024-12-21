@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from src.database import SessionLocal, engine, Base
 from src.models.task import Task
 from datetime import datetime
-
+from pydantic import BaseModel
 # Create tables in the database (only once at startup)
 Base.metadata.create_all(bind=engine)
 
@@ -20,7 +20,7 @@ def get_db():
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Task Management System!"}
-
+@app.post("/tasks/")
 def populate_dummy_data(db: Session):
     try:
         existing_tasks = db.query(Task).all()
@@ -44,6 +44,9 @@ def populate_dummy_data(db: Session):
         db.rollback()  # Rollback any changes if there's an error
 
 # 1. Create a new task
+class TaskCreate(BaseModel):
+    title: str
+    description: str = ""
 @app.post("/tasks/")
 def create_task(title: str, description: str = "", db: Session = Depends(get_db)):
     new_task = Task(title=title, description=description)
@@ -53,6 +56,7 @@ def create_task(title: str, description: str = "", db: Session = Depends(get_db)
     return new_task
 
 # 2. Get all tasks
+
 @app.get("/tasks/")
 def get_tasks(db: Session = Depends(get_db)):
     tasks = db.query(Task).all()
