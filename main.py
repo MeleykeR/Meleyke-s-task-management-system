@@ -21,31 +21,27 @@ def get_db():
 def read_root():
     return {"message": "Welcome to the Task Management System!"}
 
-# Function to populate the dummy database with sample tasks
 def populate_dummy_data(db: Session):
-    # Check if there are any tasks already in the database
-    existing_tasks = db.query(Task).all()
-    if not existing_tasks:
-        # Create some dummy tasks
-        tasks = [
-            Task(title="Finish Report", description="Complete the final report for the project.", deadline=datetime(2024, 12, 31), members="Alice, Bob"),
-            Task(title="Prepare Presentation", description="Prepare slides for the project presentation.", deadline=datetime(2024, 12, 25), members="Alice"),
-            Task(title="Code Review", description="Review the pull requests for the project.", deadline=datetime(2024, 12, 24), members="Bob, Charlie"),
-            Task(title="Update Documentation", description="Update the project documentation.", deadline=datetime(2024, 12, 30), members="Charlie"),
-            Task(title="Test New Features", description="Test the new features implemented by the team.", deadline=datetime(2024, 12, 28), members="Bob, Alice")
-        ]
-        
-        # Add tasks to the session and commit
-        db.add_all(tasks)
-        db.commit()
-        print("Dummy data populated.")
-
-# Call populate_dummy_data when the app starts
-@app.on_event("startup")
-def on_startup():
-    db = SessionLocal()
-    populate_dummy_data(db)
-    db.close()
+    try:
+        existing_tasks = db.query(Task).all()
+        if not existing_tasks:
+            tasks = [
+                Task(title="Finish Report", description="Complete the final report for the project.", deadline=datetime(2024, 12, 31), members="Alice, Bob"),
+                Task(title="Prepare Presentation", description="Prepare slides for the project presentation.", deadline=datetime(2024, 12, 25), members="Alice"),
+                Task(title="Code Review", description="Review the pull requests for the project.", deadline=datetime(2024, 12, 24), members="Bob, Charlie"),
+                Task(title="Update Documentation", description="Update the project documentation.", deadline=datetime(2024, 12, 30), members="Charlie"),
+                Task(title="Test New Features", description="Test the new features implemented by the team.", deadline=datetime(2024, 12, 28), members="Bob, Alice")
+            ]
+            
+            db.add_all(tasks)
+            db.commit()
+            db.refresh(tasks)  # Ensure tasks are committed to the database
+            print("Dummy data populated.")
+        else:
+            print("Dummy data already exists.")
+    except Exception as e:
+        print(f"Error populating dummy data: {e}")
+        db.rollback()  # Rollback any changes if there's an error
 
 # 1. Create a new task
 @app.post("/tasks/")
