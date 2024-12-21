@@ -60,3 +60,30 @@ class Task(Resource):
             api.abort(404, f"Task {id} not found")
         task.update(api.payload)
         return {"message": f"Task {id} updated successfully", "task": task}
+# Add route for managing members in a task
+@api.route("/tasks/<int:id>/members")
+@api.param("id", "The task identifier")
+class TaskMembers(Resource):
+    @api.doc("update_task_members")
+    def post(self, id):
+        """Add or update members in a task"""
+        task = next((task for task in tasks if task["id"] == id), None)
+        if not task:
+            api.abort(404, f"Task {id} not found")
+        new_members = request.json.get('members', [])
+        task["members"] = new_members
+        return {"message": f"Members of task {id} updated", "task": task}
+
+# Add route for updating the deadline of a task
+@api.route("/tasks/<int:id>/deadline")
+@api.param("id", "The task identifier")
+class TaskDeadline(Resource):
+    @api.doc("update_task_deadline")
+    def post(self, id):
+        """Update the deadline of a task"""
+        task = next((task for task in tasks if task["id"] == id), None)
+        if not task:
+            api.abort(404, f"Task {id} not found")
+        new_deadline = request.json.get('deadline', None)
+        task["deadline"] = new_deadline
+        return {"message": f"Deadline of task {id} updated", "task": task}
